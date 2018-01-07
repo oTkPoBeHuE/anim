@@ -4,6 +4,7 @@ const node3d = require('node-3d-ready-raub');
 
 global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const THREE = node3d.three;
+//console.log('!!!!node3d.stats', THREE.stats);
 //if (!Detector.webgl) Detector.addGetWebGLMessage();
 
 var container, stats, clock, mixer;
@@ -11,7 +12,6 @@ var camera, scene, renderer, objects;
 init();
 animate();
 function init() {
-	container = document.getElementById('container');
 	camera = new THREE.PerspectiveCamera(50, node3d.canvas.width / node3d.canvas.height, 1, 2000);
 	camera.position.z = 500;
 	clock = new THREE.Clock();
@@ -52,25 +52,27 @@ function init() {
 	// renderer
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio(window.devicePixelRatio);
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	container.appendChild(renderer.domElement);
+	renderer.setSize(node3d.canvas.width, node3d.canvas.height);
+
 	// stats
-	stats = new Stats();
-	container.appendChild(stats.dom);
+	//stats = new Stats();
+	//console.log('renderer.domElement', renderer.domElement);
+	//container.appendChild(renderer.domElement);
+	//container.appendChild(stats.dom);
 	// events
-	window.addEventListener('resize', onWindowResize, false);
+	//window.addEventListener('resize', onWindowResize, false);
 }
 //
 function onWindowResize(event) {
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	camera.aspect = window.innerWidth / window.innerHeight;
+	renderer.setSize(node3d.canvas.width, node3d.canvas.height);
+	camera.aspect = node3d.canvas.width / node3d.canvas.height;
 	camera.updateProjectionMatrix();
 }
 //
 function animate() {
-	requestAnimationFrame(animate);
+	node3d.frame(animate);
 	render();
-	stats.update();
+	//stats.update();
 }
 
 function render() {
