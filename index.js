@@ -1,77 +1,126 @@
 'use strict';
-const node3d  = require('node-3d-ready-raub');
+const node3d = require('node-3d-ready-raub');
+global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+//console.log('XMLHttpRequest', new XMLHttpRequest());
+const THREE = node3d.three;
 
-const VBO_SIZE = 10000;
+// Камера
+const camera = new THREE.PerspectiveCamera(50, node3d.canvas.width / node3d.canvas.height, 1, 2000);
+camera.position.set(2, 4, 5);
+//---------
+const clock = new THREE.Clock();
+//---------
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000000, 0.035);
+const mixer = new THREE.AnimationMixer(scene);
+//---------
+const loader = new THREE.JSONLoader();
 
-const screen = new node3d.Screen();
+node3d.renderer.render(scene, camera);
 
-const vertices = [];
-const colors = [];
-for (let i = VBO_SIZE * 3; i > 0; i--) {
-	vertices.push( Math.random() * 2000 - 1000 );
-	colors.push( Math.random() );
-}
+const pointLight = new THREE.PointLight(0xffffff, 1, 100000);
+scene.add(pointLight);
+pointLight.position.x = 200;
+pointLight.position.y = 2000;
+pointLight.position.z = 500;
 
-const pos = node3d.gl.createBuffer();
-node3d.gl.bindBuffer(node3d.gl.ARRAY_BUFFER, pos);
-node3d.gl.bufferData(node3d.gl.ARRAY_BUFFER, new Float32Array(vertices), node3d.gl.STATIC_DRAW);
-
-const rgb = node3d.gl.createBuffer();
-node3d.gl.bindBuffer(node3d.gl.ARRAY_BUFFER, rgb);
-node3d.gl.bufferData(node3d.gl.ARRAY_BUFFER, new Float32Array(colors), node3d.gl.STATIC_DRAW);
-
-const points = new node3d.Points({
-
-	screen,
-
-	count: VBO_SIZE,
-
-	attrs: {
-
-		position: {
-			vbo: pos,
-			items: 3,
-		},
-
-		color: {
-			vbo: rgb,
-			items: 3,
-		},
-
-	},
-
+console.log('Load ....');
+loader.load('./models/monster/monster.js', (geometry, materials) => {
+	// adjust color a bit
+	const material = materials[0];
+	material.morphTargets = true;
+	material.color.setHex(0xffaaaa);
+	console.log('geometry', geometry);
+	console.log('materials', materials);
+	// for (let i = 0; i < 729; i++) {
+	// 	const mesh = new THREE.Mesh(geometry, materials);
+	// 	// random placement in a grid
+	// 	const x = (i % 27 - 13.5) * 2 + THREE.Math.randFloatSpread(1);
+	// 	const z = (Math.floor(i / 27) - 13.5) * 2 + THREE.Math.randFloatSpread(1);
+	// 	mesh.position.set(x, 0, z);
+	// 	const s = THREE.Math.randFloat(0.00075, 0.001);
+	// 	mesh.scale.set(s, s, s);
+	// 	mesh.rotation.y = THREE.Math.randFloat(-0.25, 0.25);
+	// 	mesh.matrixAutoUpdate = false;
+	// 	mesh.updateMatrix();
+	// 	scene.add(mesh);
+	// 	mixer
+	// 		.clipAction(geometry.animations[0], mesh)
+	// 		.setDuration(1) // one second
+	// 		.startAt(-Math.random()) // random phase (already running)
+	// 		.play(); // let's go
+	// }
 });
-
-
-let isMoving = false;
-let mouse = { x: 0, y: 0 };
-
-document.on('mousedown', e => isMoving = true);
-document.on('mouseup', e => isMoving = false);
-
-document.on('mousemove', e => {
-
-	const dx = mouse.x - e.x;
-	const dy = mouse.y - e.y;
-
-	mouse.x = e.x;
-	mouse.y = e.y;
-
-	if ( ! isMoving ) {
-		return;
-	}
-
-	points.mesh.rotation.y += dx * 0.001;
-	points.mesh.rotation.x += dy * 0.001;
-
-});
-
 
 function animation() {
-
-	screen.draw();
+	node3d.renderer.render(scene, camera);
 	node3d.frame(animation);
-
 }
 
 node3d.frame(animation);
+
+// container = document.getElementById('container');
+// function init() {
+// 	loader.load('./models/monster/monster.js', function(geometry, materials) {
+// 		// adjust color a bit
+// 		const material = materials[0];
+// 		material.morphTargets = true;
+// 		material.color.setHex(0xffaaaa);
+// 		for (let i = 0; i < 729; i++) {
+// 			const mesh = new THREE.Mesh(geometry, materials);
+// 			// random placement in a grid
+// 			const x = (i % 27 - 13.5) * 2 + THREE.Math.randFloatSpread(1);
+// 			const z = (Math.floor(i / 27) - 13.5) * 2 + THREE.Math.randFloatSpread(1);
+// 			mesh.position.set(x, 0, z);
+// 			const s = THREE.Math.randFloat(0.00075, 0.001);
+// 			mesh.scale.set(s, s, s);
+// 			mesh.rotation.y = THREE.Math.randFloat(-0.25, 0.25);
+// 			mesh.matrixAutoUpdate = false;
+// 			mesh.updateMatrix();
+// 			scene.add(mesh);
+// 			mixer
+// 				.clipAction(geometry.animations[0], mesh)
+// 				.setDuration(1) // one second
+// 				.startAt(-Math.random()) // random phase (already running)
+// 				.play(); // let's go
+// 		}
+// 	});
+// 	// lights
+// 	const ambientLight = new THREE.AmbientLight(0xcccccc);
+// 	scene.add(ambientLight);
+// 	const pointLight = new THREE.PointLight(0xff4400, 5, 30);
+// 	pointLight.position.set(5, 0, 0);
+// 	scene.add(pointLight);
+// 	// renderer
+// 	renderer = new THREE.WebGLRenderer();
+// 	renderer.setPixelRatio(window.devicePixelRatio);
+// 	renderer.setSize(window.innerWidth, window.innerHeight);
+// 	container.appendChild(renderer.domElement);
+// 	// stats
+// 	stats = new Stats();
+// 	container.appendChild(stats.dom);
+// 	// events
+// 	window.addEventListener('resize', onWindowResize, false);
+// }
+// //
+// function onWindowResize(event) {
+// 	renderer.setSize(window.innerWidth, window.innerHeight);
+// 	camera.aspect = window.innerWidth / window.innerHeight;
+// 	camera.updateProjectionMatrix();
+// }
+// //
+// function animate() {
+// 	requestAnimationFrame(animate);
+// 	render();
+// 	stats.update();
+// }
+//
+// function render() {
+// 	const timer = Date.now() * 0.0005;
+// 	camera.position.x = Math.cos(timer) * 10;
+// 	camera.position.y = 4;
+// 	camera.position.z = Math.sin(timer) * 10;
+// 	mixer.update(clock.getDelta());
+// 	camera.lookAt(scene.position);
+// 	renderer.render(scene, camera);
+// }
